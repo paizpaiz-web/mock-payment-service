@@ -1,0 +1,44 @@
+{
+  "cluster": "mock-payment-cluster",
+  "serviceName": "mock-payment-service",
+  "taskDefinition": "mock-payment-service-task",
+  "desiredCount": 2,
+  "launchType": "FARGATE",
+  "platformVersion": "LATEST",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        "subnet-12345678",
+        "subnet-87654321"
+      ],
+      "securityGroups": [
+        "sg-12345678"
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  },
+  "loadBalancers": [
+    {
+      "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/mock-payment-tg/1234567890123456",
+      "containerName": "mock-payment-service",
+      "containerPort": 8080
+    }
+  ],
+  "serviceConnectConfiguration": {
+    "enabled": true,
+    "namespace": "mock-payment-namespace",
+    "services": [
+      {
+        "portName": "mock-payment-service",
+        "discoveryName": "mock-payment-service",
+        "clientAliases": [
+          {
+            "port": 8080
+          }
+        ]
+      }
+    ]
+  },
+  "healthCheckGracePeriodSeconds": 60,
+  "enableExecuteCommand": true
+}
