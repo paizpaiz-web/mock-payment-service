@@ -9,7 +9,10 @@ A .NET 8 Web API service that simulates payment processing with JWT authenticati
 
 ## Features
 
-- **JWT Authentication**: Secure API endpoints with Bearer token authentication
+- **JWT Authentication**: Secure API endpoints with Bearer token authentication, including user registration, login, and token refresh
+- **Database Authentication**: User management with secure password hashing using BCrypt
+- **Token Refresh Mechanism**: Automatic token renewal with refresh tokens stored in database
+- **HTTPS Enforcement**: HSTS enabled in production environments
 - **Payment Processing**: Mock charge and refund operations with realistic success/failure rates
 - **Structured Logging**: Serilog integration with console and file logging
 - **Containerization**: Docker support with multi-stage build
@@ -18,8 +21,25 @@ A .NET 8 Web API service that simulates payment processing with JWT authenticati
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - Authenticate and get JWT token
-  - Body: `{ "username": "admin", "password": "password" }`
+- `POST /api/auth/register` - Register a new user account
+  - Body: `{ "email": "user@example.com", "password": "securepassword123" }`
+- `POST /api/auth/login` - Authenticate and get JWT tokens
+  - Body: `{ "email": "user@example.com", "password": "securepassword123" }`
+## Database Setup
+
+Before running the application, set up the database:
+
+```bash
+cd MockPaymentService
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+This will create the necessary database tables for user authentication and refresh tokens.
+  - Returns: `{ "accessToken": "...", "refreshToken": "..." }`
+- `POST /api/auth/refresh` - Refresh access token using refresh token
+  - Body: `{ "refreshToken": "your_refresh_token_here" }`
+  - Returns: `{ "accessToken": "...", "refreshToken": "..." }`
 
 ### Payment Operations (Requires Authentication)
 - `POST /api/payment/charge` - Process a payment charge
@@ -30,6 +50,7 @@ A .NET 8 Web API service that simulates payment processing with JWT authenticati
 
 ### Prerequisites
 - .NET 8.0 SDK
+- Local SQL Server instance or SQL Server LocalDB (automatically available with Visual Studio)
 - Docker & Docker Compose (optional but recommended)
 
 ### Option 1: Using .NET CLI
@@ -132,7 +153,8 @@ For AWS-native CI/CD, use the included `buildspec.yml` with AWS CodeBuild.
 ## Configuration
 
 Update `appsettings.json` for:
-- JWT settings (key, issuer, audience)
+- JWT settings (key, issuer, audience, token expiry times)
+- Database connection string
 - Serilog configuration (log levels, sinks)
 - Kestrel endpoints
 
@@ -144,8 +166,11 @@ Update `appsettings.json` for:
 
 ## Security
 
-- JWT tokens expire after 30 minutes
-- All payment endpoints require authentication
+- JWT access tokens expire after 15 minutes, refresh tokens after 7 days
+- Secure password hashing using BCrypt with salt
+- Database-backed user authentication with proper validation
+- HTTPS enforced in production with HSTS headers
+- All payment endpoints require valid JWT authentication
 - Container runs as non-root user
 - Sensitive configuration via environment variables
 
@@ -163,18 +188,32 @@ Update `appsettings.json` for:
    ```
 
 3. **Test the API**
-   ```bash
-   # Get authentication token
-   curl -X POST http://localhost:8080/api/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{"username":"admin","password":"password"}'
+    ```bash
+    # Register a new user
+    curl -X POST http://localhost:8080/api/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{"email":"test@example.com","password":"securepassword123"}'
 
-   # Use token for payment operations
-   curl -X POST http://localhost:8080/api/payment/charge \
-     -H "Authorization: Bearer YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"amount":100.50,"cardNumber":"4111111111111111","expirationDate":"12/25","cvv":"123","cardholderName":"John Doe"}'
-   ```
+    # Login to get tokens
+    curl -X POST http://localhost:8080/api/auth/login \
+      -H "Content-Type: application/json" \
+      -d '{"email":"test@example.com","password":"securepassword123"}'
+
+    # Extract tokens from login response and use for payment operations
+    export ACCESS_TOKEN="your_access_token_here"
+    export REFRESH_TOKEN="your_refresh_token_here"
+
+    # Use access token for payment operations
+    curl -X POST http://localhost:8080/api/payment/charge \
+      -H "Authorization: Bearer $ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{"amount":100.50,"cardNumber":"4111111111111111","expirationDate":"12/25","cvv":"123","cardholderName":"John Doe"}'
+
+    # When access token expires, refresh it
+    curl -X POST http://localhost:8080/api/auth/refresh \
+      -H "Content-Type: application/json" \
+      -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}"
+    ```
 
 ## GitHub Repository Setup
 
@@ -197,10 +236,14 @@ Update `appsettings.json` for:
 mock-payment-service/
 ├── MockPaymentService/           # Main application
 │   ├── Controllers/
-│   │   ├── AuthController.cs     # JWT authentication
+│   │   ├── AuthController.cs     # JWT authentication, registration, login, token refresh
 │   │   └── PaymentController.cs  # Payment operations
+│   ├── Models/
+│   │   ├── User.cs               # User entity with secure password handling
+│   │   └── AppDbContext.cs       # Entity Framework database context
 │   ├── Program.cs                # Application entry point
-│   └── appsettings.json          # Configuration
+│   ├── appsettings.json          # Configuration (JWT, database, logging)
+│   └── MockPaymentService.csproj # Project file with dependencies
 ├── aws/                         # AWS deployment configs
 │   ├── ecs-task-definition.json
 │   ├── ecs-service.json

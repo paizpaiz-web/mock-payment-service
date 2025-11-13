@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using MockPaymentService.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +16,10 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add DbContext
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add JWT Authentication
 builder.Services.AddAuthentication("Bearer")
@@ -45,6 +51,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enforce HTTPS in production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
 
 // Add authentication and authorization middleware
 app.UseAuthentication();
