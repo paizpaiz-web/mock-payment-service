@@ -1,0 +1,100 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Mock Payment Service Lambda Function with API Gateway",
+  "Parameters": {
+    "DbEndpoint": {
+      "Type": "String",
+      "Description": "RDS Database Endpoint"
+    },
+    "DbName": {
+      "Type": "String",
+      "Description": "Database Name"
+    },
+    "DbUsername": {
+      "Type": "String",
+      "Description": "Database Username"
+    },
+    "DbPassword": {
+      "Type": "String",
+      "Description": "Database Password",
+      "NoEcho": true
+    },
+    "JwtKey": {
+      "Type": "String",
+      "Description": "JWT Secret Key",
+      "NoEcho": true
+    },
+    "JwtIssuer": {
+      "Type": "String",
+      "Description": "JWT Issuer",
+      "Default": "MockPaymentServiceLambda"
+    },
+    "JwtAudience": {
+      "Type": "String",
+      "Description": "JWT Audience",
+      "Default": "MockPaymentServiceLambda"
+    }
+  },
+  "Resources": {
+    "MockPaymentServiceFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "MockPaymentServiceLambda",
+        "Handler": "MockPaymentServiceLambda",
+        "Runtime": "dotnet8",
+        "CodeUri": "",
+        "MemorySize": 1024,
+        "Timeout": 30,
+        "Environment": {
+          "Variables": {
+            "RDS_ENDPOINT": { "Ref": "DbEndpoint" },
+            "RDS_DATABASE": { "Ref": "DbName" },
+            "RDS_USER": { "Ref": "DbUsername" },
+            "RDS_PASSWORD": { "Ref": "DbPassword" },
+            "JWT_KEY": { "Ref": "JwtKey" },
+            "JWT_ISSUER": { "Ref": "JwtIssuer" },
+            "JWT_AUDIENCE": { "Ref": "JwtAudience" }
+          }
+        },
+        "Policies": [
+          "AWSLambda_FullAccess"
+        ],
+        "Events": {
+          "ApiGateway": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/{proxy+}",
+              "Method": "ANY"
+            }
+          },
+          "RootApi": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/",
+              "Method": "ANY"
+            }
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiGatewayUrl": {
+      "Description": "API Gateway endpoint URL for the Lambda function",
+      "Value": {
+        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+      },
+      "Export": {
+        "Name": "MockPaymentService-ApiUrl"
+      }
+    },
+    "FunctionName": {
+      "Description": "Name of the Lambda function",
+      "Value": { "Ref": "MockPaymentServiceFunction" },
+      "Export": {
+        "Name": "MockPaymentService-FunctionName"
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.csproj.AssemblyReference.cache
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\rpswa.dswa.cache.json
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.GeneratedMSBuildEditorConfig.editorconfig
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.AssemblyInfoInputs.cache
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.AssemblyInfo.cs
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.csproj.CoreCompileInputs.cache
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.MvcApplicationPartsAssemblyInfo.cache
+c:\projects\mock-payment-service\MockPaymentServiceLambda\src\MockPaymentServiceLambda\obj\Release\net8.0\linux-x64\MockPaymentServiceLambda.sourcelink.json
