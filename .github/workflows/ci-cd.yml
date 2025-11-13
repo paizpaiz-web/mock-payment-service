@@ -98,8 +98,12 @@ jobs:
     - name: Build Lambda function
       run: dotnet build ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --no-restore
 
+    - name: Install AWS Lambda .NET Global Tools
+      run: dotnet tool install -g Amazon.Lambda.Tools
+
     - name: Deploy to AWS Lambda
       run: |
+        export PATH="$PATH:/home/runner/.dotnet/tools"
         cd MockPaymentServiceLambda/src/MockPaymentServiceLambda
         dotnet lambda deploy-serverless \
           --region ${{ secrets.AWS_REGION }} \
