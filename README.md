@@ -1,6 +1,6 @@
 # Mock Payment Service
 
-[![CI/CD](https://github.com/yourusername/mock-payment-service/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/yourusername/mock-payment-service/actions/workflows/ci-cd.yml)
+[![CI/CD](https://github.com/paizpaiz-web/mock-payment-service/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/paizpaiz-web/mock-payment-service/actions/workflows/ci-cd.yml)
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://docker.com)
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
