@@ -23,16 +23,25 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
+    - name: Restore dependencies (ECS)
       run: dotnet restore ./MockPaymentService
 
-    - name: Build
+    - name: Build (ECS)
       run: dotnet build ./MockPaymentService --configuration Release --no-restore
 
-    - name: Run tests
+    - name: Run tests (ECS)
       run: dotnet test ./MockPaymentService --configuration Release --no-build --verbosity normal
 
-  build-and-push:
+    - name: Restore dependencies (Lambda)
+      run: dotnet restore ./MockPaymentServiceLambda/src/MockPaymentServiceLambda
+
+    - name: Build (Lambda)
+      run: dotnet build ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --no-restore
+
+    - name: Run tests (Lambda)
+      run: dotnet test ./MockPaymentServiceLambda --configuration Release --no-build --verbosity normal
+
+  deploy-ecs:
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main'
@@ -119,10 +128,10 @@ jobs:
           --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
           --template serverless.template \
           --parameter-overrides \
-            DbEndpoint=$DB_ENDPOINT \
-            DbName=$DB_NAME \
-            DbUsername=$DB_USERNAME \
-            DbPassword=$DB_PASSWORD \
-            JwtKey=your-very-secure-secret-key-here-make-it-long-and-complex \
-            JwtIssuer=MockPaymentServiceLambda \
-            JwtAudience=MockPaymentServiceLambda
+            DbEndpoint="$DB_ENDPOINT" \
+            DbName="$DB_NAME" \
+            DbUsername="$DB_USERNAME" \
+            DbPassword="$DB_PASSWORD" \
+            JwtKey="$JWT_KEY" \
+            JwtIssuer="$JWT_ISSUER" \
+            JwtAudience="$JWT_AUDIENCE"
