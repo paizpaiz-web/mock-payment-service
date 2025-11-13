@@ -102,6 +102,14 @@ jobs:
       run: dotnet tool install -g Amazon.Lambda.Tools
 
     - name: Deploy to AWS Lambda
+      env:
+        DB_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+        DB_NAME: ${{ secrets.RDS_DATABASE }}
+        DB_USERNAME: ${{ secrets.RDS_USER }}
+        DB_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+        JWT_KEY: ${{ secrets.JWT_KEY }}
+        JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+        JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
       run: |
         export PATH="$PATH:/home/runner/.dotnet/tools"
         cd MockPaymentServiceLambda/src/MockPaymentServiceLambda
