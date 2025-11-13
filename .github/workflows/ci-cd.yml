@@ -119,10 +119,10 @@ jobs:
           --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
           --template serverless.template \
           --parameter-overrides \
-            DbEndpoint=${{ secrets.RDS_ENDPOINT }} \
-            DbName=${{ secrets.RDS_DATABASE }} \
-            DbUsername=${{ secrets.RDS_USER }} \
-            DbPassword=${{ secrets.RDS_PASSWORD }} \
+            DbEndpoint=$DB_ENDPOINT \
+            DbName=$DB_NAME \
+            DbUsername=$DB_USERNAME \
+            DbPassword=$DB_PASSWORD \
             JwtKey=your-very-secure-secret-key-here-make-it-long-and-complex \
             JwtIssuer=MockPaymentServiceLambda \
             JwtAudience=MockPaymentServiceLambda
