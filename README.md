@@ -2,10 +2,11 @@
 
 [![CI/CD](https://github.com/paizpaiz-web/mock-payment-service/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/paizpaiz-web/mock-payment-service/actions/workflows/ci-cd.yml)
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://docker.com)
+[![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-FF9900.svg?style=flat&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/lambda/)
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A .NET 8 Web API service that simulates payment processing with JWT authentication, structured logging, and AWS ECS deployment configuration.
+A .NET 8 service that simulates payment processing with JWT authentication, structured logging, and dual deployment options: **AWS ECS Fargate** (traditional container) and **AWS Lambda + API Gateway** (serverless).
 
 ## Features
 
@@ -14,9 +15,11 @@ A .NET 8 Web API service that simulates payment processing with JWT authenticati
 - **Token Refresh Mechanism**: Automatic token renewal with refresh tokens stored in database
 - **HTTPS Enforcement**: HSTS enabled in production environments
 - **Payment Processing**: Mock charge and refund operations with realistic success/failure rates
-- **Structured Logging**: Serilog integration with console and file logging
-- **Containerization**: Docker support with multi-stage build
-- **AWS ECS Deployment**: Ready-to-use AWS ECS task definitions and CI/CD pipeline
+- **Structured Logging**: Serilog integration with console and file logging (CloudWatch for Lambda)
+- **Dual Architecture Support**:
+  - **ECS Fargate**: Traditional containerized deployment with Docker
+  - **AWS Lambda**: Serverless deployment with API Gateway
+- **Database Backend**: Shared AWS RDS SQL Server for both deployment options
 
 ## API Endpoints
 
@@ -45,6 +48,11 @@ This will create the necessary database tables for user authentication and refre
 - `POST /api/payment/charge` - Process a payment charge
 - `POST /api/payment/refund` - Process a refund
 - `GET /health` - Health check endpoint
+
+### Implementation Note
+Both ECS and Lambda versions expose identical API endpoints and functionality. The only difference is the underlying infrastructure:
+- **ECS**: Runs as containerized service on Fargate
+- **Lambda**: Runs as serverless function behind API Gateway
 
 ## Running Locally
 
@@ -91,15 +99,19 @@ docker run -p 8080:8080 -v $(pwd)/logs:/app/logs mock-payment-service
 
 ## Deployment Options
 
-### GitHub Actions CI/CD
+This repository supports **dual deployment architectures** for maximum flexibility:
 
-The project includes GitHub Actions workflows for automated CI/CD:
+### Option 1: AWS ECS Fargate (Containerized)
+
+#### GitHub Actions CI/CD for ECS
+
+The project includes GitHub Actions workflows for automated ECS CI/CD:
 
 1. **Automatic Testing**: Runs on every push and PR
 2. **Docker Image Build**: Builds and pushes to Docker Hub on main branch
 3. **AWS ECS Deployment**: Deploys to AWS ECS via ECR
 
-#### Required GitHub Secrets
+#### Required GitHub Secrets for ECS
 Set these in your repository settings under "Secrets and variables" > "Actions":
 
 ```
@@ -112,11 +124,48 @@ ECS_CLUSTER_NAME      # Your ECS cluster name
 ECS_SERVICE_NAME      # Your ECS service name
 ```
 
-#### GitHub Workflow Features
+#### ECS Workflow Features
 - **Test Stage**: Runs unit tests and builds
 - **Build Stage**: Creates Docker images with proper tagging
 - **Deploy Stage**: Pushes to ECR and updates ECS service
 - **Caching**: Uses GitHub Actions cache for faster builds
+
+### Option 2: AWS Lambda + API Gateway (Serverless)
+
+#### Lambda Deployment
+The `MockPaymentServiceLambda/` directory contains a complete serverless implementation:
+
+1. **Minimal API Endpoints**: Converted from controllers for optimal Lambda performance
+2. **Service Layer Architecture**: Clean separation of business logic
+3. **SAM Template**: `serverless.template` for automated deployment
+4. **VPC Configuration**: Direct RDS connectivity through VPC
+
+#### Lambda Deployment Steps
+```bash
+# Deploy to AWS Lambda
+cd MockPaymentServiceLambda/src/MockPaymentServiceLambda
+dotnet lambda deploy-serverless
+
+# Or use AWS SAM CLI
+sam deploy --guided
+```
+
+#### Environment Variables for Lambda
+```
+RDS_ENDPOINT          # RDS instance endpoint
+RDS_USER             # Database username
+RDS_PASSWORD         # Database password (from Secrets Manager)
+RDS_DATABASE         # Database name
+JWT_KEY              # JWT signing key (from Secrets Manager)
+JWT_ISSUER           # JWT issuer
+JWT_AUDIENCE         # JWT audience
+```
+
+#### Lambda Benefits
+- **Pay-per-use**: Only pay for actual requests
+- **Auto-scaling**: Handles traffic spikes automatically
+- **Zero maintenance**: AWS manages infrastructure
+- **Cost-effective**: Lower cost for variable workloads
 
 ### AWS ECS Deployment (Manual)
 
@@ -234,27 +283,55 @@ Update `appsettings.json` for:
 
 ```
 mock-payment-service/
-├── MockPaymentService/           # Main application
+├── MockPaymentService/                    # ECS Fargate Implementation
 │   ├── Controllers/
-│   │   ├── AuthController.cs     # JWT authentication, registration, login, token refresh
-│   │   └── PaymentController.cs  # Payment operations
+│   │   ├── AuthController.cs              # JWT authentication (controller-based)
+│   │   └── PaymentController.cs           # Payment operations
 │   ├── Models/
-│   │   ├── User.cs               # User entity with secure password handling
-│   │   └── AppDbContext.cs       # Entity Framework database context
-│   ├── Program.cs                # Application entry point
-│   ├── appsettings.json          # Configuration (JWT, database, logging)
-│   └── MockPaymentService.csproj # Project file with dependencies
-├── aws/                         # AWS deployment configs
+│   │   ├── User.cs                        # User entity with BCrypt
+│   │   └── AppDbContext.cs                # EF Core context
+│   ├── Program.cs                         # Web API entry point
+│   ├── appsettings.json                   # Configuration
+│   └── MockPaymentService.csproj
+├── MockPaymentServiceLambda/              # AWS Lambda Implementation
+│   ├── src/MockPaymentServiceLambda/
+│   │   ├── Models/                        # Same models as ECS
+│   │   ├── Services/                      # Service layer architecture
+│   │   │   ├── IJwtService.cs
+│   │   │   ├── JwtService.cs
+│   │   │   ├── IAuthService.cs
+│   │   │   ├── AuthService.cs
+│   │   │   ├── IPaymentService.cs
+│   │   │   └── PaymentService.cs
+│   │   ├── Program.cs                     # Minimal API setup
+│   │   ├── Function.cs                    # Lambda entry point
+│   │   ├── appsettings.json               # Environment variables
+│   │   ├── serverless.template            # SAM deployment
+│   │   └── MockPaymentServiceLambda.csproj
+│   └── [architecture-docs]/               # Planning documentation
+├── aws/                                  # AWS deployment configs
 │   ├── ecs-task-definition.json
 │   ├── ecs-service.json
-│   └── buildspec.yml            # AWS CodeBuild
-├── .github/workflows/           # GitHub Actions
-│   └── ci-cd.yml
-├── Dockerfile                   # Container definition
-├── docker-compose.yml          # Local development
-├── .dockerignore               # Docker ignore rules
-└── README.md                   # This file
+│   └── buildspec.yml                     # AWS CodeBuild
+├── .github/workflows/                    # GitHub Actions
+│   └── ci-cd.yml                         # Supports both ECS and Lambda
+├── Dockerfile                            # ECS container definition
+├── docker-compose.yml                    # Local ECS development
+├── .dockerignore
+└── README.md                            # This file
 ```
+
+### Architecture Comparison
+
+| Feature | ECS Fargate | AWS Lambda |
+|---------|-------------|------------|
+| **Scaling** | Manual/auto-scaling | Automatic |
+| **Cost** | 24/7 container cost | Pay-per-request |
+| **Cold Starts** | None | ~1-3 seconds |
+| **Architecture** | Controllers + MVC | Minimal APIs |
+| **Deployment** | Docker containers | Zip packages |
+| **Database** | Shared RDS | Shared RDS |
+| **CI/CD** | Docker build | .NET publish |
 
 ## Contributing
 
