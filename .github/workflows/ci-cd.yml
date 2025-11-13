@@ -115,6 +115,6 @@ jobs:
             DbName=${{ secrets.RDS_DATABASE }} \
             DbUsername=${{ secrets.RDS_USER }} \
             DbPassword=${{ secrets.RDS_PASSWORD }} \
-            JwtKey=${{ secrets.JWT_KEY }} \
-            JwtIssuer=${{ secrets.JWT_ISSUER }} \
-            JwtAudience=${{ secrets.JWT_AUDIENCE }}
+            JwtKey=your-very-secure-secret-key-here-make-it-long-and-complex \
+            JwtIssuer=MockPaymentServiceLambda \
+            JwtAudience=MockPaymentServiceLambda
