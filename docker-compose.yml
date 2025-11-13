@@ -13,11 +13,6 @@ services:
       - Jwt__Key=your-development-secret-key-here-make-it-long-and-complex
       - Jwt__Issuer=MockPaymentService
       - Jwt__Audience=MockPaymentService
-      # RDS environment variables
-      - RDS_ENDPOINT=mock-payment-service-db.xxxxxxx.us-east-1.rds.amazonaws.com
-      - RDS_USER=admin
-      - RDS_PASSWORD=password
-      - RDS_DATABASE=MockPaymentServiceDb
     volumes:
       - ./logs:/app/logs
     healthcheck:
