@@ -22,12 +22,12 @@ public class PaymentService : IPaymentService
             await Task.Delay(100); // Simulate processing time
 
             var transactionId = Guid.NewGuid().ToString();
-            var success = Random.Shared.Next(0, 100) > 5; // 95% success rate
+            var success = true; // Always succeed for mock
 
             if (success)
             {
                 _logger.LogInformation("Charge successful for transaction {TransactionId}", transactionId);
-                var result = new
+                var result = new ChargeResponse
                 {
                     TransactionId = transactionId,
                     Status = "success",
@@ -39,7 +39,7 @@ public class PaymentService : IPaymentService
             else
             {
                 _logger.LogWarning("Charge failed for transaction {TransactionId}", transactionId);
-                var result = new
+                var result = new ChargeResponse
                 {
                     TransactionId = transactionId,
                     Status = "failed",
@@ -66,12 +66,12 @@ public class PaymentService : IPaymentService
             await Task.Delay(100); // Simulate processing time
 
             var refundId = Guid.NewGuid().ToString();
-            var success = Random.Shared.Next(0, 100) > 10; // 90% success rate
+            var success = true; // Always succeed for mock
 
             if (success)
             {
                 _logger.LogInformation("Refund successful for transaction {TransactionId}, refund {RefundId}", transactionId, refundId);
-                var result = new
+                var result = new RefundResponse
                 {
                     RefundId = refundId,
                     OriginalTransactionId = transactionId,
@@ -84,7 +84,7 @@ public class PaymentService : IPaymentService
             else
             {
                 _logger.LogWarning("Refund failed for transaction {TransactionId}", transactionId);
-                var result = new
+                var result = new RefundResponse
                 {
                     RefundId = refundId,
                     OriginalTransactionId = transactionId,
@@ -101,4 +101,22 @@ public class PaymentService : IPaymentService
             return (false, $"Refund failed: {ex.Message}", null);
         }
     }
+}
+
+// DTOs for responses
+public class ChargeResponse
+{
+    public string? TransactionId { get; set; }
+    public string? Status { get; set; }
+    public decimal Amount { get; set; }
+    public string? Message { get; set; }
+}
+
+public class RefundResponse
+{
+    public string? RefundId { get; set; }
+    public string? OriginalTransactionId { get; set; }
+    public string? Status { get; set; }
+    public decimal Amount { get; set; }
+    public string? Message { get; set; }
 }
