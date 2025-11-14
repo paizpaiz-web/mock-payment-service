@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Configuration;
 using MockPaymentServiceLambda.Services;
+using Moq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -7,11 +9,18 @@ namespace MockPaymentServiceLambda.Tests;
 public class JwtServiceTests
 {
     private readonly JwtService _jwtService;
+    private readonly Mock<IConfiguration> _configurationMock;
 
     public JwtServiceTests()
     {
-        // Use test configuration
-        _jwtService = new JwtService();
+        _configurationMock = new Mock<IConfiguration>();
+        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("test-jwt-key-for-testing-purposes-only");
+        _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("MockPaymentServiceLambda");
+        _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("MockPaymentServiceLambda");
+        // Don't mock extension methods - use direct property access instead
+        _configurationMock.Setup(c => c["Jwt:AccessTokenExpiryMinutes"]).Returns("15");
+
+        _jwtService = new JwtService(_configurationMock.Object);
     }
 
     [Fact]
@@ -71,7 +80,7 @@ public class JwtServiceTests
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
 
-        Assert.NotNull(jwtToken.ValidTo);
+        Assert.True(jwtToken.ValidTo > DateTime.UtcNow); // Token should be valid
         var expectedExpiry = DateTime.UtcNow.AddMinutes(15); // Default 15 minutes
         var timeDifference = Math.Abs((jwtToken.ValidTo - expectedExpiry).TotalSeconds);
         Assert.True(timeDifference < 10); // Within 10 seconds tolerance

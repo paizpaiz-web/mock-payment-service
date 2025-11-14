@@ -1,61 +1,58 @@
+using Microsoft.Extensions.Logging;
 using MockPaymentServiceLambda.Services;
+using Moq;
 
 namespace MockPaymentServiceLambda.Tests;
 
 public class PaymentServiceTests
 {
     private readonly PaymentService _paymentService;
+    private readonly Mock<ILogger<PaymentService>> _loggerMock;
 
     public PaymentServiceTests()
     {
-        _paymentService = new PaymentService();
+        _loggerMock = new Mock<ILogger<PaymentService>>();
+        _paymentService = new PaymentService(_loggerMock.Object);
     }
 
     [Fact]
     public async Task ChargeAsync_WithValidAmount_ShouldSucceed()
     {
         // Arrange
-        var request = new ChargeRequest
-        {
-            Amount = 100.50m,
-            CardNumber = "4111111111111111",
-            ExpirationDate = "12/25",
-            CVV = "123",
-            CardholderName = "John Doe"
-        };
-        var jwtToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.jwt.token";
+        var amount = 100.50m;
+        var cardNumber = "4111111111111111";
+        var expirationDate = "12/25";
+        var cvv = "123";
+        var cardholderName = "John Doe";
 
         // Act
-        var result = await _paymentService.ChargeAsync(request, jwtToken);
+        var result = await _paymentService.ChargeAsync(amount, cardNumber, expirationDate, cvv, cardholderName);
 
         // Assert
         Assert.True(result.Success);
-        Assert.NotNull(result.Response);
-        Assert.Equal(request.Amount, result.Response.Amount);
-        Assert.Equal("success", result.Response.Status);
-        Assert.NotNull(result.Response.TransactionId);
-        Assert.Contains("Payment processed successfully", result.Response.Message);
+        Assert.NotNull(result.Data);
+        var response = result.Data as dynamic;
+        Assert.Equal(amount, response.Amount);
+        Assert.Equal("success", response.Status);
+        Assert.NotNull(response.TransactionId);
+        Assert.Contains("Payment processed successfully", response.Message);
     }
 
     [Fact]
     public async Task ChargeAsync_ShouldOccasionallyFail()
     {
         // Arrange - This test might be flaky due to random failure rate
-        var request = new ChargeRequest
-        {
-            Amount = 100.00m,
-            CardNumber = "4111111111111111",
-            ExpirationDate = "12/25",
-            CVV = "123",
-            CardholderName = "John Doe"
-        };
-        var jwtToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.jwt.token";
+        var amount = 100.00m;
+        var cardNumber = "4111111111111111";
+        var expirationDate = "12/25";
+        var cvv = "123";
+        var cardholderName = "John Doe";
 
         // Act - Run multiple times to increase chance of failure
         var results = new List<bool>();
         for (int i = 0; i < 100; i++)
         {
-            var result = await _paymentService.ChargeAsync(request, jwtToken);
+            var result = await _paymentService.ChargeAsync(amount, cardNumber, expirationDate, cvv, cardholderName);
             results.Add(result.Success);
         }
 
@@ -68,44 +65,45 @@ public class PaymentServiceTests
     public async Task RefundAsync_WithValidTransaction_ShouldSucceed()
     {
         // Arrange
-        var request = new RefundRequest
-        {
-            TransactionId = Guid.NewGuid().ToString(),
-            Amount = 50.00m,
-            Reason = "Customer request"
-        };
-        var jwtToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.jwt.token";
+        var transactionId = Guid.NewGuid().ToString();
+        var amount = 50.00m;
+        var reason = "Customer request";
 
         // Act
-        var result = await _paymentService.RefundAsync(request, jwtToken);
+        var result = await _paymentService.RefundAsync(transactionId, amount, reason);
 
         // Assert
         Assert.True(result.Success);
-        Assert.NotNull(result.Response);
-        Assert.Equal(request.Amount, result.Response.Amount);
-        Assert.Equal("success", result.Response.Status);
-        Assert.NotNull(result.Response.RefundId);
-        Assert.Equal(request.TransactionId, result.Response.OriginalTransactionId);
-        Assert.Contains("Refund processed successfully", result.Response.Message);
+        Assert.NotNull(result.Data);
+        // Use reflection to check properties since anonymous objects are returned
+        var response = result.Data;
+        Assert.NotNull(response);
+        var amountProp = response.GetType().GetProperty("Amount");
+        var statusProp = response.GetType().GetProperty("Status");
+        var refundIdProp = response.GetType().GetProperty("RefundId");
+        var originalTransactionIdProp = response.GetType().GetProperty("OriginalTransactionId");
+        var messageProp = response.GetType().GetProperty("Message");
+
+        Assert.Equal(amount, amountProp?.GetValue(response));
+        Assert.Equal("success", statusProp?.GetValue(response));
+        Assert.NotNull(refundIdProp?.GetValue(response));
+        Assert.Equal(transactionId, originalTransactionIdProp?.GetValue(response));
+        Assert.Contains("Refund processed successfully", messageProp?.GetValue(response) as string);
     }
 
     [Fact]
     public async Task RefundAsync_ShouldOccasionallyFail()
     {
         // Arrange
-        var request = new RefundRequest
-        {
-            TransactionId = Guid.NewGuid().ToString(),
-            Amount = 75.00m,
-            Reason = "Invalid transaction"
-        };
-        var jwtToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.jwt.token";
+        var transactionId = Guid.NewGuid().ToString();
+        var amount = 75.00m;
+        var reason = "Invalid transaction";
 
         // Act - Run multiple times to increase chance of failure
         var results = new List<bool>();
         for (int i = 0; i < 100; i++)
         {
-            var result = await _paymentService.RefundAsync(request, jwtToken);
+            var result = await _paymentService.RefundAsync(transactionId, amount, reason);
             results.Add(result.Success);
         }
 
@@ -117,21 +115,16 @@ public class PaymentServiceTests
     [Theory]
     [InlineData(0)]
     [InlineData(-50)]
-    public async Task ChargeAsync_WithInvalidAmount_ShouldFail(decimal invalidAmount)
+    public async Task ChargeAsync_WithInvalidAmount_ShouldStillProcess(decimal invalidAmount)
     {
         // Arrange
-        var request = new ChargeRequest
-        {
-            Amount = invalidAmount,
-            CardNumber = "4111111111111111",
-            ExpirationDate = "12/25",
-            CVV = "123",
-            CardholderName = "John Doe"
-        };
-        var jwtToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.jwt.token";
+        var cardNumber = "4111111111111111";
+        var expirationDate = "12/25";
+        var cvv = "123";
+        var cardholderName = "John Doe";
 
         // Act
-        var result = await _paymentService.ChargeAsync(request, jwtToken);
+        var result = await _paymentService.ChargeAsync(invalidAmount, cardNumber, expirationDate, cvv, cardholderName);
 
         // Assert - Current implementation doesn't validate amount, so it succeeds
         // This test documents the current behavior
@@ -142,18 +135,14 @@ public class PaymentServiceTests
     public async Task ChargeAsync_WithEmptyCardNumber_ShouldStillProcess()
     {
         // Arrange
-        var request = new ChargeRequest
-        {
-            Amount = 100.00m,
-            CardNumber = "",
-            ExpirationDate = "12/25",
-            CVV = "123",
-            CardholderName = "John Doe"
-        };
-        var jwtToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.jwt.token";
+        var amount = 100.00m;
+        var cardNumber = "";
+        var expirationDate = "12/25";
+        var cvv = "123";
+        var cardholderName = "John Doe";
 
         // Act
-        var result = await _paymentService.ChargeAsync(request, jwtToken);
+        var result = await _paymentService.ChargeAsync(amount, cardNumber, expirationDate, cvv, cardholderName);
 
         // Assert - Current implementation doesn't validate card details
         Assert.True(result.Success);
