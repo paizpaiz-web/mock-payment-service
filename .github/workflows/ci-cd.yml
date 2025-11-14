@@ -142,7 +142,7 @@ jobs:
         aws s3 cp ../../../../../../lambda-package.zip s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip
 
         # Go back to the Lambda project directory
-        cd ../../../../../../
+        cd ../../../../..
 
         # Update the template with the correct S3 location
         sed -i 's|"CodeUri": ""|"CodeUri": "s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip"|' serverless.template
