@@ -1,0 +1,32 @@
+2025-11-14 10:54:11.182 +08:00 [INF] User profile is available. Using 'C:\Users\PC - FARIZ\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-11-14 10:54:11.250 +08:00 [INF] Creating key {562d77c3-c779-4425-8b0b-240ebfe9ceda} with creation date 2025-11-14 02:54:11Z, activation date 2025-11-14 02:54:11Z, and expiration date 2026-02-12 02:54:11Z.
+2025-11-14 10:54:11.276 +08:00 [INF] Writing data to file 'C:\Users\PC - FARIZ\AppData\Local\ASP.NET\DataProtection-Keys\key-562d77c3-c779-4425-8b0b-240ebfe9ceda.xml'.
+2025-11-14 10:54:11.436 +08:00 [WRN] Overriding address(es) 'http://localhost:5111'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2025-11-14 10:54:11.457 +08:00 [INF] Now listening on: http://[::]:8080
+2025-11-14 10:54:11.457 +08:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-11-14 10:54:11.457 +08:00 [INF] Hosting environment: Development
+2025-11-14 10:54:11.457 +08:00 [INF] Content root path: c:\projects\mock-payment-service\MockPaymentService
+2025-11-14 10:55:22.785 +08:00 [INF] Request starting HTTP/1.1 GET http://localhost:8080/health - null null
+2025-11-14 10:55:22.824 +08:00 [WRN] Failed to determine the https port for redirect.
+2025-11-14 10:55:22.904 +08:00 [INF] Executing endpoint 'HTTP: GET /health'
+2025-11-14 10:55:22.912 +08:00 [INF] Setting HTTP status code 200.
+2025-11-14 10:55:22.956 +08:00 [INF] Writing value of type '<>f__AnonymousType1`2' as Json.
+2025-11-14 10:55:22.984 +08:00 [INF] Executed endpoint 'HTTP: GET /health'
+2025-11-14 10:55:22.986 +08:00 [INF] Request finished HTTP/1.1 GET http://localhost:8080/health - 200 null application/json; charset=utf-8 202.9327ms
+2025-11-14 10:56:00.191 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost:8080/api/auth/register - application/json 56
+2025-11-14 10:56:00.195 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost:8080/api/auth/register - 404 0 null 4.3472ms
+2025-11-14 10:56:00.196 +08:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: POST http://localhost:8080/api/auth/register, Response status code: 404
+2025-11-14 10:56:48.057 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost:8080/api/auth/login - application/json 42
+2025-11-14 10:56:48.061 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost:8080/api/auth/login - 404 0 null 3.9167ms
+2025-11-14 10:56:48.061 +08:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: POST http://localhost:8080/api/auth/login, Response status code: 404
+2025-11-14 10:57:27.969 +08:00 [INF] Request starting HTTP/1.1 GET http://localhost:8080/api/payment/charge - null null
+2025-11-14 10:57:27.991 +08:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(ReadOnlyMemory`1 encodedTokenMemory)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+2025-11-14 10:57:28.002 +08:00 [INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+2025-11-14 10:57:28.003 +08:00 [INF] Request finished HTTP/1.1 GET http://localhost:8080/api/payment/charge - 404 0 null 33.6437ms
+2025-11-14 10:57:28.003 +08:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:8080/api/payment/charge, Response status code: 404
