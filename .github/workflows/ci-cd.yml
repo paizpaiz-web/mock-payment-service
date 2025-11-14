@@ -144,13 +144,17 @@ jobs:
         # Go back to the Lambda project directory
         cd ../../../../..
 
-        # Update the template with the correct S3 location
-        sed -i 's|"CodeUri": ""|"CodeUri": "s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip"|' serverless.template
-
-        # Deploy using AWS CLI directly
-        aws cloudformation deploy \
+        # Use the original AWS Lambda tools to deploy (let it handle packaging and S3 upload)
+        dotnet lambda deploy-serverless \
           --region ${{ secrets.AWS_REGION }} \
-          --template-file serverless.template \
           --stack-name MockPaymentServiceLambda \
-          --capabilities CAPABILITY_IAM \
-          --parameter-overrides DbEndpoint="$DB_ENDPOINT" DbName="$DB_NAME" DbUsername="$DB_USERNAME" DbPassword="$DB_PASSWORD" JwtKey="$JWT_KEY" JwtIssuer="$JWT_ISSUER" JwtAudience="$JWT_AUDIENCE"
+          --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
+          --template serverless.template \
+          --parameter-overrides \
+            DbEndpoint="$DB_ENDPOINT" \
+            DbName="$DB_NAME" \
+            DbUsername="$DB_USERNAME" \
+            DbPassword="$DB_PASSWORD" \
+            JwtKey="$JWT_KEY" \
+            JwtIssuer="$JWT_ISSUER" \
+            JwtAudience="$JWT_AUDIENCE"
