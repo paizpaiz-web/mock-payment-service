@@ -1,0 +1,56 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.cache
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test results
+TestResults/
+*.trx
+
+# NuGet packages
+packages/
+
+# .NET Core
+*.dll
+*.exe
+*.pdb
+*.cache
+*.lock
+
+# AWS Lambda
+serverless/
+
+# Environment variables
+.env
+.env.local
+
+# Database files
+*.db
+*.sqlite
+
+# Coverage reports
+coverage/
+*.coverage
