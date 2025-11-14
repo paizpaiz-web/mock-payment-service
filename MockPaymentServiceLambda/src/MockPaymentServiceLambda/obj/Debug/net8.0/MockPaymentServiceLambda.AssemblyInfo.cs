@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MockPaymentServiceLambda")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8600282a866f407619c5e1f33c6092343e37a144")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ccd1f368d862486966d3fb6a9a6b3c35fe794ce")]
 [assembly: System.Reflection.AssemblyProductAttribute("MockPaymentServiceLambda")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MockPaymentServiceLambda")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

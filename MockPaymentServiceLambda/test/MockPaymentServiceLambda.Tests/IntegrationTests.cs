@@ -15,7 +15,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         _client = _factory.CreateClient();
     }
 
-    [Fact(Skip = "Integration test environment issues")]
+    [Fact(Skip = "Integration test setup required")]
     public async Task HealthEndpoint_ShouldReturnHealthy()
     {
         // Act
@@ -23,12 +23,12 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<dynamic>();
-        Assert.Equal("healthy", (string)result.status);
-        Assert.NotNull(result.timestamp);
+        var result = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        Assert.Equal("healthy", (string)result?["status"]);
+        Assert.NotNull(result?["timestamp"]);
     }
 
-    [Fact(Skip = "Integration test environment issues")]
+    [Fact(Skip = "Integration test setup required")]
     public async Task RegisterEndpoint_WithValidData_ShouldReturnSuccess()
     {
         // Arrange
@@ -47,7 +47,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("User registered successfully", (string)result.message);
     }
 
-    [Fact(Skip = "Integration test environment issues")]
+    [Fact(Skip = "Integration test setup required")]
     public async Task LoginEndpoint_WithValidCredentials_ShouldReturnTokens()
     {
         // Arrange - First register a user
