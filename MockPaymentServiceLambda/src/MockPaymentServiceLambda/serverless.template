@@ -43,7 +43,6 @@
         "FunctionName": "MockPaymentServiceLambda",
         "Handler": "MockPaymentServiceLambda",
         "Runtime": "dotnet8",
-        "CodeUri": ".",
         "MemorySize": 1024,
         "Timeout": 30,
         "Environment": {
