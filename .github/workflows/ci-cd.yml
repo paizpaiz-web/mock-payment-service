@@ -144,17 +144,10 @@ jobs:
         # Go back to the Lambda project directory
         cd ../../../../..
 
-        # Use the original AWS Lambda tools to deploy (let it handle packaging and S3 upload)
+        # Use the original AWS Lambda tools to deploy with explicit parameter format
         dotnet lambda deploy-serverless \
           --region ${{ secrets.AWS_REGION }} \
           --stack-name MockPaymentServiceLambda \
           --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
           --template serverless.template \
-          --parameter-overrides \
-            DbEndpoint="$DB_ENDPOINT" \
-            DbName="$DB_NAME" \
-            DbUsername="$DB_USERNAME" \
-            DbPassword="$DB_PASSWORD" \
-            JwtKey="$JWT_KEY" \
-            JwtIssuer="$JWT_ISSUER" \
-            JwtAudience="$JWT_AUDIENCE"
+          --parameter-overrides DbEndpoint="$DB_ENDPOINT",DbName="$DB_NAME",DbUsername="$DB_USERNAME",DbPassword="$DB_PASSWORD",JwtKey="$JWT_KEY",JwtIssuer="$JWT_ISSUER",JwtAudience="$JWT_AUDIENCE"
