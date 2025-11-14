@@ -122,6 +122,14 @@ jobs:
       run: |
         export PATH="$PATH:/home/runner/.dotnet/tools"
         cd MockPaymentServiceLambda/src/MockPaymentServiceLambda
+        echo "Debugging parameter values (passwords hidden):"
+        echo "DB_ENDPOINT: $DB_ENDPOINT"
+        echo "DB_NAME: $DB_NAME"
+        echo "DB_USERNAME: $DB_USERNAME"
+        echo "DB_PASSWORD: [SET - length: ${#DB_PASSWORD}]"
+        echo "JWT_KEY: [SET - length: ${#JWT_KEY}]"
+        echo "JWT_ISSUER: $JWT_ISSUER"
+        echo "JWT_AUDIENCE: $JWT_AUDIENCE"
         dotnet lambda deploy-serverless \
           --region ${{ secrets.AWS_REGION }} \
           --stack-name MockPaymentServiceLambda \
