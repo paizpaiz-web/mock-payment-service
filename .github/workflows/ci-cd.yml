@@ -130,9 +130,19 @@ jobs:
         echo "JWT_KEY: [SET - length: ${#JWT_KEY}]"
         echo "JWT_ISSUER: $JWT_ISSUER"
         echo "JWT_AUDIENCE: $JWT_AUDIENCE"
-        dotnet lambda deploy-serverless \
+
+        # Publish and package manually
+        dotnet publish --configuration Release --framework net8.0 --runtime linux-x64 --self-contained false -p:GenerateRuntimeConfigurationFiles=true
+        cd bin/Release/net8.0/linux-x64/publish
+        zip -r ../../../../../../lambda-package.zip .
+
+        # Upload to S3
+        aws s3 cp ../../../../../../lambda-package.zip s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip
+
+        # Deploy using AWS CLI directly
+        aws cloudformation deploy \
           --region ${{ secrets.AWS_REGION }} \
+          --template-file ../../../../../../serverless.template \
           --stack-name MockPaymentServiceLambda \
-          --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
-          --template serverless.template \
-          --parameter-overrides "DbEndpoint=$DB_ENDPOINT DbName=$DB_NAME DbUsername=$DB_USERNAME DbPassword=$DB_PASSWORD JwtKey=$JWT_KEY JwtIssuer=$JWT_ISSUER JwtAudience=$JWT_AUDIENCE"
+          --capabilities CAPABILITY_IAM \
+          --parameter-overrides DbEndpoint="$DB_ENDPOINT" DbName="$DB_NAME" DbUsername="$DB_USERNAME" DbPassword="$DB_PASSWORD" JwtKey="$JWT_KEY" JwtIssuer="$JWT_ISSUER" JwtAudience="$JWT_AUDIENCE"
