@@ -39,7 +39,7 @@ jobs:
       run: dotnet build ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --no-restore
 
     - name: Run tests (Lambda)
-      run: dotnet test ./MockPaymentServiceLambda/test/MockPaymentServiceLambda.Tests/MockPaymentServiceLambda.Tests.csproj --configuration Release --no-build --verbosity normal
+      run: dotnet test ./MockPaymentServiceLambda/test/MockPaymentServiceLambda.Tests/MockPaymentServiceLambda.Tests.csproj --configuration Release --verbosity normal
 
   deploy-ecs:
     runs-on: ubuntu-latest
