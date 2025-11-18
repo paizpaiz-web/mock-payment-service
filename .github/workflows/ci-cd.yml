@@ -101,6 +101,15 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
+    - name: Validate required secrets
+      run: |
+        if [ -z "${{ secrets.RDS_ENDPOINT }}" ]; then echo "Error: RDS_ENDPOINT secret is not set"; exit 1; fi
+        if [ -z "${{ secrets.RDS_DATABASE }}" ]; then echo "Error: RDS_DATABASE secret is not set"; exit 1; fi
+        if [ -z "${{ secrets.RDS_USER }}" ]; then echo "Error: RDS_USER secret is not set"; exit 1; fi
+        if [ -z "${{ secrets.RDS_PASSWORD }}" ]; then echo "Error: RDS_PASSWORD secret is not set"; exit 1; fi
+        if [ -z "${{ secrets.JWT_KEY }}" ]; then echo "Error: JWT_KEY secret is not set"; exit 1; fi
+        echo "All required secrets are set"
+
     - name: Restore dependencies
       run: dotnet restore ./MockPaymentServiceLambda/src/MockPaymentServiceLambda
 
@@ -150,4 +159,4 @@ jobs:
           --stack-name MockPaymentServiceLambda \
           --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
           --template serverless.template \
-          --parameter-overrides DbEndpoint="$DB_ENDPOINT",DbName="$DB_NAME",DbUsername="$DB_USERNAME",DbPassword="$DB_PASSWORD",JwtKey="$JWT_KEY",JwtIssuer="$JWT_ISSUER",JwtAudience="$JWT_AUDIENCE"
+          --parameter-overrides "DbEndpoint=$DB_ENDPOINT,DbName=$DB_NAME,DbUsername=$DB_USERNAME,DbPassword=$DB_PASSWORD,JwtKey=$JWT_KEY,JwtIssuer=$JWT_ISSUER,JwtAudience=$JWT_AUDIENCE"
