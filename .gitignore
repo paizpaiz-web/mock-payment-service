@@ -42,6 +42,7 @@ packages/
 
 # AWS Lambda
 serverless/
+lambda-package.zip
 
 # Environment variables
 .env

@@ -159,4 +159,4 @@ jobs:
           --stack-name MockPaymentServiceLambda \
           --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
           --template serverless.template \
-          --parameter-overrides "DbEndpoint=$DB_ENDPOINT,DbName=$DB_NAME,DbUsername=$DB_USERNAME,DbPassword=$DB_PASSWORD,JwtKey=$JWT_KEY,JwtIssuer=$JWT_ISSUER,JwtAudience=$JWT_AUDIENCE"
+          --parameter-overrides ParameterKey=DbEndpoint,ParameterValue=$DB_ENDPOINT ParameterKey=DbName,ParameterValue=$DB_NAME ParameterKey=DbUsername,ParameterValue=$DB_USERNAME ParameterKey=DbPassword,ParameterValue=$DB_PASSWORD ParameterKey=JwtKey,ParameterValue=$JWT_KEY ParameterKey=JwtIssuer,ParameterValue=$JWT_ISSUER ParameterKey=JwtAudience,ParameterValue=$JWT_AUDIENCE
