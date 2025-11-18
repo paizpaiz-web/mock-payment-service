@@ -15,7 +15,7 @@ public class Program
         // builder.Services.AddControllers(); // Remove MVC controllers for minimal APIs
 
         // Add DbContext
-        var connectionString = $"Server={Environment.GetEnvironmentVariable("RDS_ENDPOINT")},1433;Database={Environment.GetEnvironmentVariable("RDS_DATABASE")};User Id={Environment.GetEnvironmentVariable("RDS_USER")};Password={Environment.GetEnvironmentVariable("RDS_PASSWORD")};";
+        var connectionString = $"Server={Environment.GetEnvironmentVariable("RDS_ENDPOINT")},1433;Database={Environment.GetEnvironmentVariable("RDS_DATABASE")};User Id={Environment.GetEnvironmentVariable("RDS_USER")};Password={Environment.GetEnvironmentVariable("RDS_PASSWORD")};TrustServerCertificate=true;";
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString));
 
