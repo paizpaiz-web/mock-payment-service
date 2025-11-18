@@ -116,8 +116,29 @@ jobs:
     - name: Build Lambda function
       run: dotnet build ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --no-restore
 
-    - name: Install AWS Lambda .NET Global Tools
-      run: dotnet tool install -g Amazon.Lambda.Tools
+    - name: Publish Lambda function
+      run: dotnet publish ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --framework net8.0 --runtime linux-x64 --self-contained false -p:GenerateRuntimeConfigurationFiles=true
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push image to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: mock-payment-service-lambda
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build the Docker image
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+
+        # Push the Docker images
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+        # Export the image URI for use in CloudFormation
+        echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
     - name: Deploy to AWS Lambda
       env:
@@ -129,8 +150,6 @@ jobs:
         JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
         JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
       run: |
-        export PATH="$PATH:/home/runner/.dotnet/tools"
-        cd MockPaymentServiceLambda/src/MockPaymentServiceLambda
         echo "Debugging parameter values (passwords hidden):"
         echo "DB_ENDPOINT: $DB_ENDPOINT"
         echo "DB_NAME: $DB_NAME"
@@ -139,34 +158,12 @@ jobs:
         echo "JWT_KEY: [SET - length: ${#JWT_KEY}]"
         echo "JWT_ISSUER: $JWT_ISSUER"
         echo "JWT_AUDIENCE: $JWT_AUDIENCE"
+        echo "IMAGE_URI: $IMAGE_URI"
 
-        # Build and publish
-        dotnet publish --configuration Release --framework net8.0 --runtime linux-x64 --self-contained false -p:GenerateRuntimeConfigurationFiles=true
-
-        # Package the function
-        cd bin/Release/net8.0/linux-x64/publish
-        zip -r ../../../../../../lambda-package.zip .
-
-        # Upload to S3
-        aws s3 cp ../../../../../../lambda-package.zip s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip
-
-        # Go back to the Lambda project directory
-        cd ../../../../..
-
-        # Create package and deploy
-        dotnet lambda package \
-          --project-location . \
-          --output-package lambda-package.zip
-
-        aws s3 cp lambda-package.zip s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip
-
-        aws cloudformation package \
-          --template-file serverless.template \
-          --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
-          --output-template-file packaged-template.json
-
+        # Deploy with CloudFormation
         aws cloudformation deploy \
-          --template-file packaged-template.json \
+          --template-file MockPaymentServiceLambda/src/MockPaymentServiceLambda/serverless.template \
           --stack-name MockPaymentServiceLambda \
           --parameter-overrides DbEndpoint=$DB_ENDPOINT DbName=$DB_NAME DbUsername=$DB_USERNAME DbPassword=$DB_PASSWORD JwtKey=$JWT_KEY JwtIssuer=$JWT_ISSUER JwtAudience=$JWT_AUDIENCE \
+          --image-uri $IMAGE_URI \
           --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND

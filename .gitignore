@@ -44,6 +44,7 @@ packages/
 serverless/
 lambda-package.zip
 packaged-template.json
+*.tmp
 
 # Environment variables
 .env
