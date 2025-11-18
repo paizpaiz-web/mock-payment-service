@@ -17,7 +17,13 @@ public class Program
         // Add DbContext
         var connectionString = $"Server={Environment.GetEnvironmentVariable("RDS_ENDPOINT")},1433;Database={Environment.GetEnvironmentVariable("RDS_DATABASE")};User Id={Environment.GetEnvironmentVariable("RDS_USER")};Password={Environment.GetEnvironmentVariable("RDS_PASSWORD")};TrustServerCertificate=true;";
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            }));
 
         // Add services
         builder.Services.AddScoped<IJwtService, JwtService>();
