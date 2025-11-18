@@ -46,6 +46,7 @@
       "Properties": {
         "FunctionName": "MockPaymentServiceLambda",
         "PackageType": "Image",
+        "ImageUri": { "Ref": "ImageUri" },
         "Architectures": ["x86_64"],
         "MemorySize": 1024,
         "Timeout": 30,
