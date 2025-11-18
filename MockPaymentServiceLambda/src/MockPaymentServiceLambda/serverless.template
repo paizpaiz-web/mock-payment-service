@@ -61,6 +61,10 @@
             "JWT_AUDIENCE": { "Ref": "JwtAudience" }
           }
         },
+        "VpcConfig": {
+          "SubnetIds": ["subnet-0534043f2ce442db5", "subnet-0a92d13934595fb66", "subnet-0ce84bcf24fc8586b"],
+          "SecurityGroupIds": ["sg-06082efea1e45cddf"]
+        },
         "Policies": [
           "AWSLambda_FullAccess"
         ],
