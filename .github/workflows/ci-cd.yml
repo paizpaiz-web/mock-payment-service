@@ -116,12 +116,13 @@ jobs:
     - name: Build Lambda function
       run: dotnet build ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --no-restore
 
-    - name: Publish Lambda function
-      run: dotnet publish ./MockPaymentServiceLambda/src/MockPaymentServiceLambda --configuration Release --framework net8.0 --runtime linux-x64 --self-contained false -p:GenerateRuntimeConfigurationFiles=true
-
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Create ECR repository if it doesn't exist
+      run: |
+        aws ecr describe-repositories --repository-names mock-payment-service-lambda || aws ecr create-repository --repository-name mock-payment-service-lambda
 
     - name: Build, tag, and push image to Amazon ECR
       env:

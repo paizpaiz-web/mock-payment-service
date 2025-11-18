@@ -1,7 +1,14 @@
 FROM public.ecr.aws/lambda/dotnet:8
 
-# Copy the published application
-COPY MockPaymentServiceLambda/src/MockPaymentServiceLambda/bin/Release/net8.0/linux-x64/publish/ ${LAMBDA_TASK_ROOT}
+WORKDIR /var/task
+
+# Copy csproj and restore dependencies
+COPY MockPaymentServiceLambda/src/MockPaymentServiceLambda/*.csproj ./MockPaymentServiceLambda/src/MockPaymentServiceLambda/
+RUN dotnet restore ./MockPaymentServiceLambda/src/MockPaymentServiceLambda/MockPaymentServiceLambda.csproj
+
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish ./MockPaymentServiceLambda/src/MockPaymentServiceLambda -c Release -r linux-x64 --self-contained false -o /var/task
 
 # Set the handler
 CMD ["MockPaymentServiceLambda"]
