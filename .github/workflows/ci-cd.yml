@@ -165,6 +165,5 @@ jobs:
         aws cloudformation deploy \
           --template-file MockPaymentServiceLambda/src/MockPaymentServiceLambda/serverless.template \
           --stack-name MockPaymentServiceLambda \
-          --parameter-overrides DbEndpoint=$DB_ENDPOINT DbName=$DB_NAME DbUsername=$DB_USERNAME DbPassword=$DB_PASSWORD JwtKey=$JWT_KEY JwtIssuer=$JWT_ISSUER JwtAudience=$JWT_AUDIENCE \
-          --image-uri $IMAGE_URI \
+          --parameter-overrides DbEndpoint=$DB_ENDPOINT DbName=$DB_NAME DbUsername=$DB_USERNAME DbPassword=$DB_PASSWORD JwtKey=$JWT_KEY JwtIssuer=$JWT_ISSUER JwtAudience=$JWT_AUDIENCE ImageUri=$IMAGE_URI \
           --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
