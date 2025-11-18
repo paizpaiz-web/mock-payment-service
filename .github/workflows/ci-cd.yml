@@ -153,10 +153,20 @@ jobs:
         # Go back to the Lambda project directory
         cd ../../../../..
 
-        # Use the original AWS Lambda tools to deploy with explicit parameter format
-        dotnet lambda deploy-serverless \
-          --region ${{ secrets.AWS_REGION }} \
-          --stack-name MockPaymentServiceLambda \
+        # Create package and deploy
+        dotnet lambda package \
+          --project-location . \
+          --output-package lambda-package.zip
+
+        aws s3 cp lambda-package.zip s3://${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }}/lambda-package.zip
+
+        aws cloudformation package \
+          --template-file serverless.template \
           --s3-bucket ${{ secrets.LAMBDA_DEPLOYMENT_BUCKET }} \
-          --template serverless.template \
-          --parameter-overrides ParameterKey=DbEndpoint,ParameterValue=$DB_ENDPOINT ParameterKey=DbName,ParameterValue=$DB_NAME ParameterKey=DbUsername,ParameterValue=$DB_USERNAME ParameterKey=DbPassword,ParameterValue=$DB_PASSWORD ParameterKey=JwtKey,ParameterValue=$JWT_KEY ParameterKey=JwtIssuer,ParameterValue=$JWT_ISSUER ParameterKey=JwtAudience,ParameterValue=$JWT_AUDIENCE
+          --output-template-file packaged-template.json
+
+        aws cloudformation deploy \
+          --template-file packaged-template.json \
+          --stack-name MockPaymentServiceLambda \
+          --parameter-overrides DbEndpoint=$DB_ENDPOINT DbName=$DB_NAME DbUsername=$DB_USERNAME DbPassword=$DB_PASSWORD JwtKey=$JWT_KEY JwtIssuer=$JWT_ISSUER JwtAudience=$JWT_AUDIENCE \
+          --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND
