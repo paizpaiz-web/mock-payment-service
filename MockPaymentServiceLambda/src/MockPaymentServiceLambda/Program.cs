@@ -15,8 +15,9 @@ public class Program
         // builder.Services.AddControllers(); // Remove MVC controllers for minimal APIs
 
         // Add DbContext
+        var connectionString = $"Server={Environment.GetEnvironmentVariable("RDS_ENDPOINT")},1433;Database={Environment.GetEnvironmentVariable("RDS_DATABASE")};User Id={Environment.GetEnvironmentVariable("RDS_USER")};Password={Environment.GetEnvironmentVariable("RDS_PASSWORD")};";
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(connectionString));
 
         // Add services
         builder.Services.AddScoped<IJwtService, JwtService>();
@@ -55,7 +56,19 @@ public class Program
         app.UseAuthorization();
 
         // Health check endpoint
-        app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+        app.MapGet("/health", async (AppDbContext dbContext) =>
+        {
+            try
+            {
+                // Test database connection
+                await dbContext.Database.CanConnectAsync();
+                return Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow, database = "connected" });
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem($"Database connection failed: {ex.Message}", statusCode: 503);
+            }
+        })
             .WithName("HealthCheck");
 
         // Auth endpoints
